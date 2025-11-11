@@ -28,7 +28,7 @@ This repository contains Python scripts for extracting, mining, and analyzing de
   - **mine_dev_info.py**: Mines developer participation information from GitHub issues using the GitHub API. It identifies different developer roles (PR authors, bug report authors, commenters, and reviewers) for each issue.
   - **data_analysis.py**: Analyzes the extracted data to generate statistics about issues, projects, and developer participation patterns, comparing downstream-driven fixes vs. upstream-involved fixes.
 
-- **requirements.txt**: Python package dependencies (pandas, openpyxl, python-dotenv, requests)
+- **requirements.txt**: Python package dependencies
 - **data/**: Directory for input/output data files (not tracked in git)
 
 # References
