@@ -20,4 +20,8 @@ collaboration shapes the resolution of interdependent bugs, contributing to both
 collaboration and the broader study of software maintenance in large, distributed ecosystems.        
 
 # References
-Wanwangying Ma et al. “How do developers fix cross-project correlated bugs? a case study on the github scientific python ecosystem”. In: 2017 IEEE/ACM 39th International Conference on Software Engineering (ICSE). IEEE. 2017, pp. 381–392.
+- Wanwangying Ma et al. “How do developers fix cross-project correlated bugs? a case study on the github scientific python ecosystem”. In: 2017 IEEE/ACM 39th International Conference on Software Engineering (ICSE). IEEE. 2017, pp. 381–392.          
+- Ashraf, U., Mayr-Dorn, C., Mashkoor, A., Egyed, A., & Panichella, S. (2021, May). Do communities in developer interaction networks align with subsystem developer teams? An empirical study of open source systems. In 2021 IEEE/ACM Joint 15th International Conference on Software and System Processes (ICSSP) and 16th ACM/IEEE International Conference on Global Software Engineering (ICGSE) (pp. 61-71). IEEE.
+- Canfora, G., Cerulo, L., Cimitile, M., & Di Penta, M. (2011, May). Social interactions around cross-system bug fixings: the case of freebsd and openbsd. In Proceedings of the 8th working conference on mining software repositories (pp. 143-152).     
+- Herbold, S., Amirfallah, A., Trautsch, F., & Grabowski, J. (2021). A systematic mapping study of developer social network research. Journal of Systems and Software, 171, 110802.
+- Kumar, A., & Gupta, A. (2013, February). Evolution of developer social network and its impact on bug fixing process. In Proceedings of the 6th India Software Engineering Conference (pp. 63-72).     
