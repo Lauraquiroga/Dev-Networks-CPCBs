@@ -1,0 +1,137 @@
+import os
+import csv
+import requests
+from dotenv import load_dotenv
+from collections import defaultdict
+
+load_dotenv()  # Loads variables from .env into environment
+GITHUB_TOKEN = os.getenv('PAC') # Get Personal Access Token
+HEADERS = {'Authorization': f'token {GITHUB_TOKEN}'}
+
+# GitHub API URL
+API_URL = "https://api.github.com/repos/"
+
+# Input and Output file paths
+INPUT_CSV = '../data/combined_issues_test.csv'
+OUTPUT_CSV = '../data/developer_info.csv'
+
+# --- Helper Functions ---
+
+def parse_issue_ref(issue_ref):
+    """Parse the issue reference to extract owner, repo, and issue number."""
+    try:
+        repo_path, issue_num = issue_ref.split('#')
+        owner, repo = repo_path.split('/')
+        return owner, repo, issue_num
+    except ValueError:
+        return None, None, None
+
+
+def safe_request(url):
+    """Perform a safe GET request with basic rate-limit handling."""
+    while True:
+        response = requests.get(url, headers=HEADERS)
+        # if response.status_code == 403 and 'X-RateLimit-Remaining' in response.headers:
+        #     reset_time = int(response.headers.get('X-RateLimit-Reset', time.time() + 60))
+        #     wait_for = max(0, reset_time - int(time.time()) + 5)
+        #     print(f"Rate limit reached, waiting {wait_for} seconds...")
+        #     time.sleep(wait_for)
+        if response.status_code == 403:
+            print(f"Rate limit exceeded. Try again later.")
+            return None
+        elif response.status_code == 404:
+            print(f"⚠️ Not found: {url}")
+            return None
+        elif response.status_code != 200:
+            print(f"⚠️ Error {response.status_code} on {url}")
+            return None
+        else:
+            return response.json()
+        
+# --- Get developer participation per issue ---
+def process_issue(issue_ref, is_pr):
+    owner, repo, issue_num = parse_issue_ref(issue_ref)
+    if not owner:
+        return {}
+
+    issue_url = f"{API_URL}{owner}/{repo}/issues/{issue_num}"
+    issue_data = safe_request(issue_url)
+    if not issue_data:
+        return {}
+
+    # dictionary {username: {'PR_author': bool, 'BugReport_author': bool, 'commented': bool, 'reviewer': bool}}
+    dev_roles = defaultdict(lambda: {
+        'PR_author': False,
+        'BugReport_author': False,
+        'commented': False,
+        'reviewer': False
+    })
+
+    # --- Author ---
+    if issue_data.get('user'):
+        username = issue_data['user']['login']
+        if is_pr:
+            dev_roles[username]['PR_author'] = True
+        else:
+            dev_roles[username]['BugReport_author'] = True
+
+    # --- Commenters ---
+    comments_url = issue_data.get('comments_url')
+    if comments_url:
+        comments = safe_request(comments_url)
+        if comments:
+            for c in comments:
+                if c.get('user'):
+                    username = c['user']['login']
+                    dev_roles[username]['commented'] = True
+
+    # --- Reviewers (PR only) ---
+    if is_pr:
+        pr_reviews_url = f"{API_URL}{owner}/{repo}/pulls/{issue_num}/reviews"
+        reviews = safe_request(pr_reviews_url)
+        if reviews:
+            for r in reviews:
+                if r.get('user'):
+                    username = r['user']['login']
+                    dev_roles[username]['reviewer'] = True
+
+    return dev_roles
+
+
+# --- Main execution ---
+def main():
+    all_rows = []
+
+    with open(INPUT_CSV, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            issue_ref = row['GitHub Issue'].strip()
+            is_pr = row['PR'].strip().lower() == 'true'
+            print(f"Processing {issue_ref} (PR={is_pr})...")
+
+            dev_roles = process_issue(issue_ref, is_pr)
+
+            for username, roles in dev_roles.items():
+                all_rows.append({
+                    'username': username,
+                    'issue': issue_ref,
+                    'PR_author': roles['PR_author'],
+                    'BugReport_author': roles['BugReport_author'],
+                    'commented': roles['commented'],
+                    'reviewer': roles['reviewer']
+                })
+
+
+    # --- Save combined results ---
+    with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=[
+            'username', 'issue', 'PR_author', 'BugReport_author', 'commented', 'reviewer'
+        ])
+        writer.writeheader()
+        writer.writerows(all_rows)
+
+    print(f"✅ Developer information saved to {OUTPUT_CSV}")
+
+
+if __name__ == "__main__":
+    main()
