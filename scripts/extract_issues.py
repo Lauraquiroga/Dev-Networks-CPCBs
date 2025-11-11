@@ -13,7 +13,7 @@ for sheet_name in xls.sheet_names:
     #IF sheet_name starts with 'PS', process it and is not PS8, PS9 or PS11
     if sheet_name.startswith('PS') and sheet_name not in ['PS8', 'PS9', 'PS11']:
         df = pd.read_excel(xls, sheet_name=sheet_name)
-        df['Pattern Structure'] = sheet_name  # Add PS tag
+        df['Pattern-Structure'] = sheet_name  # Add PS tag
 
         # Identify the Fix-type column
         fix_col = 'Fix-type'
@@ -30,10 +30,10 @@ for sheet_name in xls.sheet_names:
                    and pd.notna(row[col]) \
                    and 'commit' not in str(row[col]).lower():
                     all_issues.append({
-                        'GitHub Issue': row[col],
+                        'GitHub-Issue': row[col],
                         'PR': 'PR' in col or 'Pull Request' in col,
                         'Fix-type': fix_type,
-                        'Pattern Structure': pattern,
+                        'Pattern-Structure': pattern,
                         'Downstream-driven-fix': fix_type == 'PF1' or fix_type == 'PF4' or fix_type == 'PF5', 
                         'ID': f"{pattern}-{row['#']}"
                     })

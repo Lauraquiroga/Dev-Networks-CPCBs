@@ -63,8 +63,8 @@ def process_issue(issue_ref, is_pr):
     dev_roles = defaultdict(lambda: {
         'PR_author': False,
         'BugReport_author': False,
-        'commented': False,
-        'reviewer': False
+        'Commented': False,
+        'Reviewer': False
     })
 
     # --- Author ---
@@ -83,7 +83,7 @@ def process_issue(issue_ref, is_pr):
             for c in comments:
                 if c.get('user'):
                     username = c['user']['login']
-                    dev_roles[username]['commented'] = True
+                    dev_roles[username]['Commented'] = True
 
     # --- Reviewers (PR only) ---
     if is_pr:
@@ -93,7 +93,7 @@ def process_issue(issue_ref, is_pr):
             for r in reviews:
                 if r.get('user'):
                     username = r['user']['login']
-                    dev_roles[username]['reviewer'] = True
+                    dev_roles[username]['Reviewer'] = True
 
     return dev_roles
 
@@ -105,7 +105,7 @@ def main():
     with open(INPUT_CSV, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            issue_ref = row['GitHub Issue'].strip()
+            issue_ref = row['GitHub-Issue'].strip()
             is_pr = row['PR'].strip().lower() == 'true'
             print(f"Processing {issue_ref} (PR={is_pr})...")
 
@@ -113,19 +113,22 @@ def main():
 
             for username, roles in dev_roles.items():
                 all_rows.append({
-                    'username': username,
-                    'issue': issue_ref,
+                    'Username': username,
+                    'Issue': issue_ref,
                     'PR_author': roles['PR_author'],
                     'BugReport_author': roles['BugReport_author'],
-                    'commented': roles['commented'],
-                    'reviewer': roles['reviewer']
+                    'Commented': roles['Commented'],
+                    'Reviewer': roles['Reviewer'],
+                    'Fix-type': row['Fix-type'],
+                    'Pattern-Structure': row['Pattern-Structure'],
+                    'Downstream-driven-fix': row['Downstream-driven-fix'],
                 })
 
 
     # --- Save combined results ---
     with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=[
-            'username', 'issue', 'PR_author', 'BugReport_author', 'commented', 'reviewer'
+            'Username', 'Issue', 'PR_author', 'BugReport_author', 'Commented', 'Reviewer'
         ])
         writer.writeheader()
         writer.writerows(all_rows)
