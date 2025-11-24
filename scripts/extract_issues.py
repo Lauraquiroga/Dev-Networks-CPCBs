@@ -1,6 +1,19 @@
+"""
+Extract GitHub Issues from CPCB Pattern Excel Workbook
+
+This script extracts and consolidates GitHub issue references from an Excel workbook containing multiple sheets, each categorized by CPCB pattern structures.
+
+For each relevant sheet (those starting with 'PS', except PS8, PS9, PS11), the script:
+    - Reads the sheet into a DataFrame
+    - Identifies and skips columns with empty, NaN, or 'Unnamed' headers
+    - Iterates over rows, extracting issue references and associated metadata (fix type, pattern structure, scenario, etc.)
+    - Excludes rows/columns that do not represent actionable issues (e.g., 'PF9' fix type, columns with 'commit' in the value)
+
+The result is a deduplicated CSV file (`../data/combined_issues.csv`) containing all extracted issues and their context, suitable for further analysis or enrichment.
+"""
+
 import pandas as pd
 
-# Script to extract GitHub issues from multiple sheets with the CPCB pattern categorization in an Excel file
 
 
 # Load the Excel file with multiple sheets

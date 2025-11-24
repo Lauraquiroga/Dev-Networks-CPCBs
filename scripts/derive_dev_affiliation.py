@@ -1,6 +1,24 @@
+"""
+Derive Developer Affiliation Scores and Categories
+
+This script analyzes developer participation in GitHub issues and pull requests to derive affiliation scores and categories for each developer within each project.
+
+Workflow:
+1. Loads developer activity data from a CSV (../data/developer_info.csv).
+2. Converts participation columns to booleans and extracts the project name from each issue reference.
+3. Computes a weighted participation score for each developer per project, based on their roles (PR author, reviewer, bug reporter, commenter).
+4. Normalizes scores to determine the percentage of each developer's activity per project.
+5. Assigns an affiliation category (primary, secondary, incidental, other) based on thresholds and the developer's highest project involvement.
+6. Flags drive-by contributors with very low total activity.
+7. Saves the results to a CSV (../data/dev_affiliations.csv) and prints a sample of the output.
+
+Input:  ../data/developer_info.csv (must contain columns for participation types and issue references)
+        Sample header: Username,Issue,PR-author,BugReport-author,Commented,Reviewer,Fix-type,Pattern-Structure,Downstream-driven-fix,Scenario
+Output: ../data/dev_affiliations.csv (affiliation scores and categories per developer per project)
+        Sample header: Username,Project,ParticipationScore,TotalScore,AffiliationPct,AffiliationType,DriveBy
+"""
+
 import pandas as pd
-import numpy as np
-# Script to derive developer affiliation scores based on their participation in cross-project bug scenarios
 
 # Weights for each participation type
 WEIGHTS = {

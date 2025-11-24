@@ -1,5 +1,5 @@
 """
-mine_dev_info.py
+Mine Developer Information from GitHub Issues
 
 This script loads a GitHub personal access token from a .env file, reads a CSV of combined issues, and uses the GitHub API 
 to fetch additional information about repositories or issues. It is designed to automate the enrichment of issue data with 

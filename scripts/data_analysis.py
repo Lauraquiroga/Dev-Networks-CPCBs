@@ -1,3 +1,17 @@
+"""
+Analyze Combined Issues and Developer Info Data
+
+This script analyzes the combined issues and developer info datasets to extract key statistics and insights about project activity and developer participation.
+
+Workflow:
+1. Loads and analyzes combined issues data (../data/combined_issues.csv), reporting counts of issues, PRs, bug reports, projects, downstream-driven fixes, and unique IDs.
+2. Loads and analyzes developer info data (../data/developer_info.csv), reporting distinct users, average developers per issue, and breakdowns by downstream-driven-fix status.
+3. For each downstream-driven-fix group, reports user activity, average appearances, and top contributors.
+
+Input:  ../data/combined_issues.csv, ../data/developer_info.csv
+Output: Prints summary statistics and breakdowns to the console for further interpretation.
+"""
+
 import csv
 from pathlib import Path
 from collections import defaultdict, Counter
