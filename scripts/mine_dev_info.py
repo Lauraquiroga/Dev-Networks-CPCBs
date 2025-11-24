@@ -1,3 +1,11 @@
+"""
+mine_dev_info.py
+
+This script loads a GitHub personal access token from a .env file, reads a CSV of combined issues, and uses the GitHub API 
+to fetch additional information about repositories or issues. It is designed to automate the enrichment of issue data with 
+live GitHub metadata for further analysis.
+"""
+
 import os
 import csv
 import requests
@@ -12,7 +20,7 @@ HEADERS = {'Authorization': f'token {GITHUB_TOKEN}'}
 API_URL = "https://api.github.com/repos/"
 
 # Input and Output file paths
-INPUT_CSV = '../data/combined_issues_test.csv'
+INPUT_CSV = '../data/combined_issues.csv'
 OUTPUT_CSV = '../data/developer_info.csv'
 
 # --- Helper Functions ---
@@ -59,10 +67,10 @@ def process_issue(issue_ref, is_pr):
     if not issue_data:
         return {}
 
-    # dictionary {username: {'PR_author': bool, 'BugReport_author': bool, 'commented': bool, 'reviewer': bool}}
+    # dictionary {username: {'PR-author': bool, 'BugReport-author': bool, 'commented': bool, 'reviewer': bool}}
     dev_roles = defaultdict(lambda: {
-        'PR_author': False,
-        'BugReport_author': False,
+        'PR-author': False,
+        'BugReport-author': False,
         'Commented': False,
         'Reviewer': False
     })
@@ -71,9 +79,9 @@ def process_issue(issue_ref, is_pr):
     if issue_data.get('user'):
         username = issue_data['user']['login']
         if is_pr:
-            dev_roles[username]['PR_author'] = True
+            dev_roles[username]['PR-author'] = True
         else:
-            dev_roles[username]['BugReport_author'] = True
+            dev_roles[username]['BugReport-author'] = True
 
     # --- Commenters ---
     comments_url = issue_data.get('comments_url')
@@ -115,20 +123,21 @@ def main():
                 all_rows.append({
                     'Username': username,
                     'Issue': issue_ref,
-                    'PR_author': roles['PR_author'],
-                    'BugReport_author': roles['BugReport_author'],
+                    'PR-author': roles['PR-author'],
+                    'BugReport-author': roles['BugReport-author'],
                     'Commented': roles['Commented'],
                     'Reviewer': roles['Reviewer'],
                     'Fix-type': row['Fix-type'],
                     'Pattern-Structure': row['Pattern-Structure'],
                     'Downstream-driven-fix': row['Downstream-driven-fix'],
+                    'Scenario': row['Scenario'],
                 })
 
 
     # --- Save combined results ---
     with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=[
-            'Username', 'Issue', 'PR_author', 'BugReport_author', 'Commented', 'Reviewer'
+            'Username', 'Issue', 'PR-author', 'BugReport-author', 'Commented', 'Reviewer', 'Fix-type', 'Pattern-Structure', 'Downstream-driven-fix', 'Scenario'
         ])
         writer.writeheader()
         writer.writerows(all_rows)

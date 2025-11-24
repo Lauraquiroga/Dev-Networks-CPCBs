@@ -32,14 +32,13 @@ def analyze_developer_info(path):
         rows = list(reader)
 
     # --- Overall developer stats ---
-    distinct_users = {r["username"] for r in rows}
+    distinct_users = {r["Username"] for r in rows}
     devs_per_issue = defaultdict(set)
     for r in rows:
-        devs_per_issue[r["issue"]].add(r["username"])
+        devs_per_issue[r["Issue"]].add(r["Username"])
     avg_devs_per_issue = sum(len(devs) for devs in devs_per_issue.values()) / len(devs_per_issue)
 
     print("👩‍💻 Developer Info Analysis (All Issues)")
-    print(f"Total developers: {len(distinct_users)}")
     print(f"Distinct users: {len(distinct_users)}")
     print(f"Average developers per issue: {avg_devs_per_issue:.2f}")
     print()
@@ -56,16 +55,16 @@ def analyze_developer_info(path):
             continue
 
         # distinct users for this group
-        users = {r["username"] for r in group}
+        users = {r["Username"] for r in group}
 
         # developers per issue for this group
         devs_per_issue_group = defaultdict(set)
         for r in group:
-            devs_per_issue_group[r["issue"]].add(r["username"])
+            devs_per_issue_group[r["Issue"]].add(r["Username"])
         avg_devs_per_issue_group = sum(len(devs) for devs in devs_per_issue_group.values()) / len(devs_per_issue_group)
 
         # frequency of each user (how many times they appear)
-        user_counts = Counter(r["username"] for r in group)
+        user_counts = Counter(r["Username"] for r in group)
         avg_appearances_per_user = sum(user_counts.values()) / len(user_counts)
 
         print(f"👥 Developer Info (Downstream-driven-fix = {status.capitalize()})")
@@ -78,7 +77,7 @@ def analyze_developer_info(path):
 
 def main():
     combined_path = Path("../data/combined_issues.csv")
-    devinfo_path = Path("../data/developer_info_enriched.csv")
+    devinfo_path = Path("../data/developer_info.csv")
 
     analyze_combined_issues(combined_path)
     analyze_developer_info(devinfo_path)
