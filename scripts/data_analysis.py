@@ -34,9 +34,9 @@ def analyze_combined_issues(path):
     print(f"PRs: {total_prs}")
     print(f"Bug Reports: {total_bug_reports}")
     print(f"Projects involved: {total_projects}")
-    print(f"Downstream-driven-fix (True): {downstream_true}")
-    print(f"Downstream-driven-fix (False): {total_issues - downstream_true}")
-    print(f"Unique IDs: {total_ids}")
+    print(f"Downstream-driven-fix Issues: {downstream_true}")
+    print(f"Upstream-driven-fix Issues: {total_issues - downstream_true}")
+    print(f"Unique IDs (Scenarios): {total_ids}")
     print()
 
 
