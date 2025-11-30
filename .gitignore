@@ -3,5 +3,5 @@ data/*
 venv/
 .DS_Store
 .env
-scripts/dummy.py
-scripts/find_multiple_primaryaff.py
+scripts-data-generation/dummy.py
+scripts-data-generation/find_multiple_primaryaff.py
