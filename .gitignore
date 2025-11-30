@@ -5,3 +5,4 @@ venv/
 .env
 scripts-data-generation/dummy.py
 scripts-data-generation/find_multiple_primaryaff.py
+.Rhistory
