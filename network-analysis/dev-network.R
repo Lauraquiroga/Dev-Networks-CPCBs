@@ -216,6 +216,10 @@ hist_ds <- hist(deg_ds, breaks = seq(min(deg_ds), max(deg_ds)+1, by=1),
 axis(1, at = seq(min(deg_ds), max(deg_ds), by = max(1, floor((max(deg_ds)-min(deg_ds))/20))))
 axis(2, at = seq(0, max(hist_ds$counts), by = max(1, floor(max(hist_ds$counts)/20))))
 
+# Print degree distribution (downstream)
+cat("\nDegree distribution (downstream):\n")
+print(table(deg_ds))
+
 # --- Visualize Node with Highest Degree (Downstream) ---
 max_deg_ds <- max(deg_ds)
 node_max_deg_ds <- names(deg_ds)[which(deg_ds == max_deg_ds)]
@@ -237,6 +241,39 @@ hist_up <- hist(deg_up, breaks = seq(min(deg_up), max(deg_up)+1, by=1),
 # Custom x and y axes with more ticks
 axis(1, at = seq(min(deg_up), max(deg_up), by = max(1, floor((max(deg_up)-min(deg_up))/20))))
 axis(2, at = seq(0, max(hist_up$counts), by = max(1, floor(max(hist_up$counts)/20))))
+
+# Print degree distribution (upstream)
+cat("\nDegree distribution (upstream):\n")
+print(table(deg_up))
+
+# --- Edge Weight Distribution (Histogram) ---
+# Downstream Driven Graph
+edge_weights_ds <- E(g_ds)$weight
+hist(edge_weights_ds, breaks = 30, main = "Edge Weight Distribution (Downstream)",
+  xlab = "Edge Weight", ylab = "Frequency", col = "lightblue",
+  xaxt = "n", yaxt = "n", xlim = c(min(edge_weights_ds), max(edge_weights_ds)), ylim = c(0, max(tabulate(as.integer(edge_weights_ds)))))
+axis(1, at = pretty(edge_weights_ds, n = 20))
+axis(2, at = pretty(hist(edge_weights_ds, plot=FALSE)$counts, n = 20))
+
+# Print edge weight distribution (downstream)
+cat("\nEdge weight distribution (downstream):\n")
+print(summary(edge_weights_ds))
+cat("\nEdge weight frequency table (downstream):\n")
+print(table(edge_weights_ds))
+
+# Upstream Driven Graph
+edge_weights_up <- E(g_up)$weight
+hist(edge_weights_up, breaks = 30, main = "Edge Weight Distribution (Upstream)",
+  xlab = "Edge Weight", ylab = "Frequency", col = "lightcoral",
+  xaxt = "n", yaxt = "n", xlim = c(min(edge_weights_up), max(edge_weights_up)), ylim = c(0, max(tabulate(as.integer(edge_weights_up)))))
+axis(1, at = pretty(edge_weights_up, n = 20))
+axis(2, at = pretty(hist(edge_weights_up, plot=FALSE)$counts, n = 20))
+
+# Print edge weight distribution (upstream)
+cat("\nEdge weight distribution (upstream):\n")
+print(summary(edge_weights_up))
+cat("\nEdge weight frequency table (upstream):\n")
+print(table(edge_weights_up))
 
 # --- Average Path Length (using inverse weights as distances) ---
 if (is_connected(g_ds)) {
