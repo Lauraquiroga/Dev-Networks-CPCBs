@@ -4,3 +4,4 @@ venv/
 .DS_Store
 .env
 scripts/dummy.py
+scripts/find_multiple_primaryaff.py

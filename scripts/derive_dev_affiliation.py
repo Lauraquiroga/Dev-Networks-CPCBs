@@ -32,7 +32,7 @@ WEIGHTS = {
 SECONDARY_THRESHOLD = 0.20   # ≥ 20% → secondary affiliation
 INCIDENTAL_THRESHOLD = 0.10  # < 10% → incidental
 
-INPUT_CSV = '../data/developer_info.csv"'
+INPUT_CSV = '../data/developer_info_cleaned.csv'
 OUTPUT_CSV = '../data/dev_affiliations.csv'
 
 

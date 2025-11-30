@@ -91,7 +91,7 @@ def analyze_developer_info(path):
 
 def main():
     combined_path = Path("../data/combined_issues.csv")
-    devinfo_path = Path("../data/developer_info.csv")
+    devinfo_path = Path("../data/developer_info_cleaned.csv")
 
     analyze_combined_issues(combined_path)
     analyze_developer_info(devinfo_path)
