@@ -21,13 +21,22 @@ def analyze_combined_issues(path):
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    total_issues = len(rows)
-    total_prs = sum(1 for r in rows if r["PR"].lower() == "true")
-    total_bug_reports = total_issues - total_prs
-    projects = {r["GitHub-Issue"].split("#")[0] for r in rows}
-    total_projects = len(projects)
-    downstream_true = sum(1 for r in rows if r["Downstream-driven-fix"].lower() == "true")
-    total_ids = len({r["ID"] for r in rows})
+        total_issues = len(rows)
+        total_prs = sum(1 for r in rows if r["PR"].lower() == "true")
+        total_bug_reports = total_issues - total_prs
+        projects = {r["GitHub-Issue"].split("#")[0] for r in rows}
+        total_projects = len(projects)
+        downstream_true = sum(1 for r in rows if r["Downstream-driven-fix"].lower() == "true")
+        total_ids = len({r["ID"] for r in rows})
+
+        # Scenario count classified as downstream vs upstream driven
+        scenario_downstream = set()
+        scenario_upstream = set()
+        for r in rows:
+            if r["Downstream-driven-fix"].lower() == "true":
+                scenario_downstream.add(r["ID"])
+            else:
+                scenario_upstream.add(r["ID"])
 
     print("📊 Combined Issues Analysis")
     print(f"Total issues: {total_issues}")
@@ -37,6 +46,8 @@ def analyze_combined_issues(path):
     print(f"Downstream-driven-fix Issues: {downstream_true}")
     print(f"Upstream-driven-fix Issues: {total_issues - downstream_true}")
     print(f"Unique IDs (Scenarios): {total_ids}")
+    print(f"Scenarios classified as downstream-driven: {len(scenario_downstream)}")
+    print(f"Scenarios classified as upstream-driven: {len(scenario_upstream)}")
     print()
 
 
