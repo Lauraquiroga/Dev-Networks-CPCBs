@@ -205,3 +205,59 @@ cat("Graph density:", density_up, "\n")
 avg_weighted_degree_up <- mean(strength(g_up, weights=E(g_up)$weight))
 cat("Average weighted degree:", avg_weighted_degree_up, "\n")
 
+# --- Degree Distribution (Unweighted) ---
+# Downstream Driven Graph
+deg_ds <- degree(g_ds, mode = "all")
+hist_ds <- hist(deg_ds, breaks = seq(min(deg_ds), max(deg_ds)+1, by=1),
+               main = "Degree Distribution (Downstream)",
+               xlab = "Degree", ylab = "Frequency", col = "skyblue",
+               xaxt = "n", yaxt = "n", xlim = c(min(deg_ds), max(deg_ds)), ylim = c(0, max(tabulate(deg_ds+1))))
+# Custom x and y axes with more ticks
+axis(1, at = seq(min(deg_ds), max(deg_ds), by = max(1, floor((max(deg_ds)-min(deg_ds))/20))))
+axis(2, at = seq(0, max(hist_ds$counts), by = max(1, floor(max(hist_ds$counts)/20))))
+
+# --- Visualize Node with Highest Degree (Downstream) ---
+max_deg_ds <- max(deg_ds)
+node_max_deg_ds <- names(deg_ds)[which(deg_ds == max_deg_ds)]
+cat("\nNode with highest degree (downstream):", node_max_deg_ds, "with degree", max_deg_ds, "\n")
+
+# Highlight this node in the downstream-driven graph
+vertex_colors <- rep("lightgray", vcount(g_ds))
+vertex_colors[which(V(g_ds)$name == node_max_deg_ds)] <- "red"
+plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_ds), main = paste("Downstream Driven Scenarios\nNode with Highest Degree Highlighted"),
+  vertex.color = vertex_colors)
+
+# Upstream Driven Graph
+deg_up <- degree(g_up, mode = "all")
+hist_up <- hist(deg_up, breaks = seq(min(deg_up), max(deg_up)+1, by=1),
+               main = "Degree Distribution (Upstream)",
+               xlab = "Degree", ylab = "Frequency", col = "salmon",
+               xaxt = "n", yaxt = "n", xlim = c(min(deg_up), max(deg_up)), ylim = c(0, max(tabulate(deg_up+1))))
+# Custom x and y axes with more ticks
+axis(1, at = seq(min(deg_up), max(deg_up), by = max(1, floor((max(deg_up)-min(deg_up))/20))))
+axis(2, at = seq(0, max(hist_up$counts), by = max(1, floor(max(hist_up$counts)/20))))
+
+# --- Average Path Length (using inverse weights as distances) ---
+if (is_connected(g_ds)) {
+  avg_path_length_ds <- mean_distance(g_ds, weights = E(g_ds)$inv_weight)
+  cat("\nAverage path length (downstream, inv_weight):", avg_path_length_ds, "\n")
+} else {
+  cat("\nDownstream graph is not connected; computing average path length for the largest component.\n")
+  comp_ds <- components(g_ds)
+  giant_ds <- induced_subgraph(g_ds, which(comp_ds$membership == which.max(comp_ds$csize)))
+  avg_path_length_ds <- mean_distance(giant_ds, weights = E(giant_ds)$inv_weight)
+  cat("Average path length (downstream, inv_weight, giant component):", avg_path_length_ds, "\n")
+}
+
+if (is_connected(g_up)) {
+  avg_path_length_up <- mean_distance(g_up, weights = E(g_up)$inv_weight)
+  cat("Average path length (upstream, inv_weight):", avg_path_length_up, "\n")
+} else {
+  cat("Upstream graph is not connected; computing average path length for the largest component.\n")
+  comp_up <- components(g_up)
+  giant_up <- induced_subgraph(g_up, which(comp_up$membership == which.max(comp_up$csize)))
+  avg_path_length_up <- mean_distance(giant_up, weights = E(giant_up)$inv_weight)
+  cat("Average path length (upstream, inv_weight, giant component):", avg_path_length_up, "\n")
+}
+
