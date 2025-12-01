@@ -399,7 +399,7 @@ vertex_colors_up <- comm_colors_up[membership(comm_up)]
 plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
   layout = layout_nicely(g_up), main = "Upstream: Louvain Communities",
   vertex.color = vertex_colors_up)
-legend("topright", legend = paste("Community", sort(unique(membership(comm_up)))),
+legend("bottomleft", legend = paste("Community", sort(unique(membership(comm_up)))),
     col = comm_colors_up, pch = 19, pt.cex = 1.2, bty = "n")
 
 # --- Load Developer Affiliations and Color-Code Networks by Primary Affiliation ---
@@ -480,7 +480,7 @@ get_affiliation_colors <- function(graph, affiliation_lookup, color_palette) {
 affiliation_colors_ds <- get_affiliation_colors(g_ds, primary_affiliation_lookup, project_colors)
 
 plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
-  layout = layout_nicely(g_ds), main = "Downstream: Nodes by Primary Affiliation",
+  layout = layout_with_fr(g_ds), main = "Downstream: Nodes by Primary Affiliation",
   vertex.color = affiliation_colors_ds)
 
 # Create legend with top projects (by frequency)
