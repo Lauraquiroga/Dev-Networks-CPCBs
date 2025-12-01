@@ -369,3 +369,34 @@ plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
 legend("topright", legend = c("Top 1", "Top 2-5", "Top 6-10", "Other"),
     col = c("red", "orange", "yellow", "lightgray"), pch = 19, pt.cex = 1.5, bty = "n")
 
+
+# --- Louvain Community Detection (using edge weights) ---
+cat("\nLouvain community detection (downstream, using weights):\n")
+comm_ds <- cluster_louvain(g_ds, weights = E(g_ds)$weight)
+print(comm_ds)
+cat("Membership table (downstream):\n")
+print(table(membership(comm_ds)))
+
+cat("\nLouvain community detection (upstream, using weights):\n")
+comm_up <- cluster_louvain(g_up, weights = E(g_up)$weight)
+print(comm_up)
+cat("Membership table (upstream):\n")
+print(table(membership(comm_up)))
+
+# --- Plot Networks Color-Coded by Louvain Communities ---
+set.seed(42) # seed for the colors
+comm_colors_ds <- rainbow(length(unique(membership(comm_ds))))
+vertex_colors_ds <- comm_colors_ds[membership(comm_ds)]
+plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_ds), main = "Downstream: Louvain Communities",
+  vertex.color = vertex_colors_ds)
+legend("topright", legend = paste("Community", sort(unique(membership(comm_ds)))),
+    col = comm_colors_ds, pch = 19, pt.cex = 1.2, bty = "n")
+
+comm_colors_up <- rainbow(length(unique(membership(comm_up))))
+vertex_colors_up <- comm_colors_up[membership(comm_up)]
+plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_up), main = "Upstream: Louvain Communities",
+  vertex.color = vertex_colors_up)
+legend("topright", legend = paste("Community", sort(unique(membership(comm_up)))),
+    col = comm_colors_up, pch = 19, pt.cex = 1.2, bty = "n")
