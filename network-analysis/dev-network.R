@@ -298,3 +298,74 @@ if (is_connected(g_up)) {
   cat("Average path length (upstream, inv_weight, giant component):", avg_path_length_up, "\n")
 }
 
+# --- Betweenness Centrality (using inverse weights as distances) ---
+cat("\nTop 10 betweenness centrality (downstream, inv_weight):\n")
+betw_ds <- betweenness(g_ds, weights = E(g_ds)$inv_weight, normalized = TRUE)
+betw_ds_sorted <- sort(betw_ds, decreasing = TRUE)
+print(head(betw_ds_sorted, 10))
+
+# --- Betweenness Centrality Statistics and Plots (Downstream) ---
+cat("\nBetweenness centrality stats (downstream):\n")
+cat("\nFull betweenness centrality distribution (downstream):\n")
+print(betw_ds)
+cat("Mean:", mean(betw_ds), "\n")
+cat("Variance:", var(betw_ds), "\n")
+
+hist(betw_ds, breaks = 30, main = "Betweenness Centrality Distribution (Downstream)",
+  xlab = "Betweenness Centrality", ylab = "Frequency", col = "lightgreen")
+boxplot(betw_ds, main = "Betweenness Centrality Boxplot (Downstream)", horizontal = TRUE, col = "lightgreen")
+
+cat("\nTop 10 betweenness centrality (upstream, inv_weight):\n")
+betw_up <- betweenness(g_up, weights = E(g_up)$inv_weight, normalized = TRUE)
+betw_up_sorted <- sort(betw_up, decreasing = TRUE)
+print(head(betw_up_sorted, 10))
+
+# --- Betweenness Centrality Statistics and Plots (Upstream) ---
+cat("\nBetweenness centrality stats (upstream):\n")
+cat("\nFull betweenness centrality distribution (upstream):\n")
+print(betw_up)
+cat("Mean:", mean(betw_up), "\n")
+cat("Variance:", var(betw_up), "\n")
+hist(betw_up, breaks = 30, main = "Betweenness Centrality Distribution (Upstream)",
+  xlab = "Betweenness Centrality", ylab = "Frequency", col = "orange")
+boxplot(betw_up, main = "Betweenness Centrality Boxplot (Upstream)", horizontal = TRUE, col = "orange")
+
+# --- Kolmogorov–Smirnov Test: Compare Betweenness Distributions ---
+cat("\nKolmogorov–Smirnov test (KS test) for betweenness centrality distributions (downstream vs upstream):\n")
+ks_result <- ks.test(betw_ds, betw_up)
+print(ks_result)
+
+cat("\nWilcoxon rank-sum test (Mann-Whitney U test) for betweenness centrality distributions (downstream vs upstream):\n")
+wt_result <- wilcox.test(betw_ds, betw_up)
+print(wt_result)
+
+# --- Plot Networks Color-Coded by Betweenness Centrality Rank ---
+
+# Helper function to assign colors by rank
+get_centrality_colors <- function(names_vec, betw_sorted) {
+  colors <- rep("lightgray", length(names_vec))
+  top1 <- names(betw_sorted)[1]
+  top5 <- names(betw_sorted)[2:5]
+  top10 <- names(betw_sorted)[6:10]
+  colors[names_vec == top1] <- "red"
+  colors[names_vec %in% top5] <- "orange"
+  colors[names_vec %in% top10] <- "yellow"
+  return(colors)
+}
+
+# Downstream network plot
+colors_ds <- get_centrality_colors(V(g_ds)$name, betw_ds_sorted)
+plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_ds), main = "Downstream: Nodes by Betweenness Rank",
+  vertex.color = colors_ds)
+legend("topright", legend = c("Top 1", "Top 2-5", "Top 6-10", "Other"),
+    col = c("red", "orange", "yellow", "lightgray"), pch = 19, pt.cex = 1.5, bty = "n")
+
+# Upstream network plot
+colors_up <- get_centrality_colors(V(g_up)$name, betw_up_sorted)
+plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_up), main = "Upstream: Nodes by Betweenness Rank",
+  vertex.color = colors_up)
+legend("topright", legend = c("Top 1", "Top 2-5", "Top 6-10", "Other"),
+    col = c("red", "orange", "yellow", "lightgray"), pch = 19, pt.cex = 1.5, bty = "n")
+
