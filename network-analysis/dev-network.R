@@ -383,6 +383,7 @@ print(comm_up)
 cat("Membership table (upstream):\n")
 print(table(membership(comm_up)))
 
+
 # --- Plot Networks Color-Coded by Louvain Communities ---
 set.seed(42) # seed for the colors
 comm_colors_ds <- rainbow(length(unique(membership(comm_ds))))
@@ -400,3 +401,119 @@ plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
   vertex.color = vertex_colors_up)
 legend("topright", legend = paste("Community", sort(unique(membership(comm_up)))),
     col = comm_colors_up, pch = 19, pt.cex = 1.2, bty = "n")
+
+# --- Load Developer Affiliations and Color-Code Networks by Primary Affiliation ---
+
+# Read the developer affiliations CSV file
+df_aff <- read.csv("../data/dev_affiliations_v2.csv", stringsAsFactors = FALSE)
+
+# Filter to only primary affiliations
+df_primary <- df_aff[df_aff$AffiliationType == "primary", ]
+
+# Create a lookup table: username -> primary project
+primary_affiliation_lookup <- setNames(df_primary$Project, df_primary$Username)
+
+# Get unique primary affiliations (projects)
+unique_projects <- unique(df_primary$Project)
+n_projects <- length(unique_projects)
+
+# Calculate project frequencies across all nodes
+all_nodes <- union(V(g_ds)$name, V(g_up)$name)
+project_counts_all <- table(primary_affiliation_lookup[all_nodes])
+# Sort projects by frequency (most frequent first)
+projects_by_frequency <- names(sort(project_counts_all, decreasing = TRUE))
+
+# Create a highly distinguishable color palette
+# Manually selected colors that are maximally distinct
+distinct_colors <- c(
+  "#E41A1C",  # Red
+  "#377EB8",  # Blue
+  "#4DAF4A",  # Green
+  "#FF7F00",  # Orange
+  "#984EA3",  # Purple
+  "#FFFF33",  # Yellow
+  "#A65628",  # Brown
+  "#F781BF",  # Pink
+  "#00CED1",  # Dark Turquoise
+  "#32CD32",  # Lime Green
+  "#8B4513",  # Saddle Brown
+  "#FF1493",  # Deep Pink
+  "#1E90FF",  # Dodger Blue
+  "#FFD700",  # Gold
+  "#8B008B",  # Dark Magenta
+  "#00FA9A",  # Medium Spring Green
+  "#DC143C",  # Crimson
+  "#4169E1",  # Royal Blue
+  "#FF6347",  # Tomato
+  "#9370DB"   # Medium Purple
+)
+
+# Assign colors: most frequent projects get the most distinct colors
+project_colors <- rep("#CCCCCC", n_projects)  # Default gray for less common projects
+names(project_colors) <- unique_projects
+
+for (i in seq_along(projects_by_frequency)) {
+  if (i <= length(distinct_colors)) {
+    project_colors[projects_by_frequency[i]] <- distinct_colors[i]
+  }
+}
+
+# Function to assign colors to nodes based on primary affiliation
+get_affiliation_colors <- function(graph, affiliation_lookup, color_palette) {
+  node_names <- V(graph)$name
+  colors <- rep("lightgray", length(node_names))  # Default color for nodes without affiliation
+  
+  for (i in seq_along(node_names)) {
+    username <- node_names[i]
+    if (username %in% names(affiliation_lookup)) {
+      primary_project <- affiliation_lookup[[username]]
+      if (primary_project %in% names(color_palette)) {
+        colors[i] <- color_palette[[primary_project]]
+      }
+    }
+  }
+  
+  return(colors)
+}
+
+# --- Plot Downstream Network Color-Coded by Primary Affiliation ---
+affiliation_colors_ds <- get_affiliation_colors(g_ds, primary_affiliation_lookup, project_colors)
+
+plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_ds), main = "Downstream: Nodes by Primary Affiliation",
+  vertex.color = affiliation_colors_ds)
+
+# Create legend with top projects (by frequency)
+project_counts_ds <- table(primary_affiliation_lookup[V(g_ds)$name])
+top_projects_ds <- names(sort(project_counts_ds, decreasing = TRUE)[1:min(10, length(project_counts_ds))])
+legend("topright", legend = c(top_projects_ds, "No primary aff."),
+    col = c(project_colors[top_projects_ds], "lightgray"), 
+    pch = 19, pt.cex = 1.0, cex = 0.7, bty = "n")
+
+# --- Plot Upstream Network Color-Coded by Primary Affiliation ---
+affiliation_colors_up <- get_affiliation_colors(g_up, primary_affiliation_lookup, project_colors)
+
+plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
+  layout = layout_nicely(g_up), main = "Upstream: Nodes by Primary Affiliation",
+  vertex.color = affiliation_colors_up)
+
+# Create legend with top projects (by frequency)
+project_counts_up <- table(primary_affiliation_lookup[V(g_up)$name])
+top_projects_up <- names(sort(project_counts_up, decreasing = TRUE)[1:min(10, length(project_counts_up))])
+legend("topleft", legend = c(top_projects_up, "No primary aff."),
+  col = c(project_colors[top_projects_up], "lightgray"), 
+  pch = 19, pt.cex = 1.0, cex = 0.7, bty = "n")
+
+# --- Print Affiliation Statistics ---
+cat("\n--- Primary Affiliation Statistics ---\n")
+cat("Downstream Network:\n")
+cat("Nodes with primary affiliation:", sum(V(g_ds)$name %in% names(primary_affiliation_lookup)), "/", vcount(g_ds), "\n")
+cat("Top 5 primary affiliations:\n")
+print(head(sort(project_counts_ds, decreasing = TRUE), 5))
+
+cat("\nUpstream Network:\n")
+cat("Nodes with primary affiliation:", sum(V(g_up)$name %in% names(primary_affiliation_lookup)), "/", vcount(g_up), "\n")
+cat("Top 5 primary affiliations:\n")
+print(head(sort(project_counts_up, decreasing = TRUE), 5))
+
+

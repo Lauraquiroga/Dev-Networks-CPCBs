@@ -33,7 +33,7 @@ SECONDARY_THRESHOLD = 0.20   # ≥ 20% → secondary affiliation
 INCIDENTAL_THRESHOLD = 0.10  # < 10% → incidental
 
 INPUT_CSV = '../data/developer_info_cleaned.csv'
-OUTPUT_CSV = '../data/dev_affiliations.csv'
+OUTPUT_CSV = '../data/dev_affiliations_v2.csv'
 
 
 # ---------------------------------------------------------
@@ -108,19 +108,38 @@ def affiliation_label(row, max_pct):
     else:
         return "other"
 
-# Compute primary affiliation threshold for each dev
-max_pct_per_dev = (
-    scores.groupby("Username")["AffiliationPct"]
-          .max()
-          .rename("MaxPct")
-)
-scores = scores.merge(max_pct_per_dev, on="Username")
 
-# Assign category
-scores["AffiliationType"] = scores.apply(
-    lambda row: affiliation_label(row, row["MaxPct"]),
-    axis=1
+# --- Ensure only one primary affiliation per developer with deterministic tie-breaking ---
+# 1. Count number of raw participation rows per user-project
+row_counts = (
+    df.groupby(["Username", "Project"]).size().rename("RowCount").reset_index()
 )
+scores = scores.merge(row_counts, on=["Username", "Project"], how="left")
+
+# 2. For each developer, find all projects with max AffiliationPct
+def assign_affiliation_types(subdf):
+    max_pct = subdf["AffiliationPct"].max()
+    tied = subdf[subdf["AffiliationPct"] == max_pct].copy()
+    # Tie-break 1: most raw rows
+    tied = tied[tied["RowCount"] == tied["RowCount"].max()]
+    # Tie-break 2: highest ParticipationScore
+    tied = tied[tied["ParticipationScore"] == tied["ParticipationScore"].max()]
+    # Tie-break 3: lex smallest project name
+    primary_project = tied.sort_values("Project").iloc[0]["Project"]
+    # Assign types
+    types = []
+    for _, row in subdf.iterrows():
+        if row["Project"] == primary_project:
+            types.append("primary")
+        elif row["AffiliationPct"] >= SECONDARY_THRESHOLD:
+            types.append("secondary")
+        elif row["AffiliationPct"] < INCIDENTAL_THRESHOLD:
+            types.append("incidental")
+        else:
+            types.append("other")
+    return pd.Series(types, index=subdf.index)
+
+scores["AffiliationType"] = scores.groupby("Username", group_keys=False).apply(assign_affiliation_types)
 
 
 # ---------------------------------------------------------
