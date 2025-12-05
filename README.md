@@ -20,16 +20,33 @@ collaboration shapes the resolution of interdependent bugs, contributing to both
 collaboration and the broader study of software maintenance in large, distributed ecosystems.        
 
 # Project Structure
+         
+This section of the README file was generated using AI.
 
-This repository contains Python scripts for extracting, mining, and analyzing developer collaboration networks in CPCB (Cross-Project Correlated Bugs) fixing scenarios:
+This repository contains scripts and data for extracting, mining, and analyzing developer collaboration networks in CPCB (Cross-Project Correlated Bugs) fixing scenarios:
 
-- **scripts/**: Directory containing the main Python scripts
-  - **extract_issues.py**: Extracts GitHub issues from CPCB pattern categorization Excel files. It processes multiple sheets (PS1-PS7, excluding PS8, PS9, PS11) and generates a combined CSV file with issue metadata including fix types and pattern structures.
-  - **mine_dev_info.py**: Mines developer participation information from GitHub issues using the GitHub API. It identifies different developer roles (PR authors, bug report authors, commenters, and reviewers) for each issue.
+## Directories
+
+- **scripts-data-generation/**: Python scripts for data extraction and pre-processing
+  - **extract_issues.py**: Extracts GitHub issues from CPCB pattern categorization Excel files. Processes multiple sheets and generates a combined CSV file with issue metadata including fix types and pattern structures.
+  - **mine_dev_info.py**: Mines developer participation information from GitHub issues using the GitHub API. Identifies different developer roles (PR authors, bug report authors, commenters, and reviewers) for each issue.
   - **data_analysis.py**: Analyzes the extracted data to generate statistics about issues, projects, and developer participation patterns, comparing downstream-driven fixes vs. upstream-involved fixes.
+  - **derive_dev_affiliation.py**: Derives developer affiliations with projects based on their participation patterns.
+  - **detect_bots.py**: Identifies and filters out bot accounts from the developer data.
+  - **bot_comment_parser.py**: Parses bot comments to extract relevant information.
+  - **process_developer_involvement.py**: Processes and quantifies developer involvement across scenarios.
+  - **remove_devs_from_list.py**: Utility for removing specific developers from analysis.
+
+- **network-analysis/**: R scripts for network analysis and visualization
+  - **dev_network.R**: Main network analysis script. Constructs and analyzes developer collaboration networks for both downstream-driven and upstream-involved scenarios. Computes network metrics (degree distribution, betweenness centrality, community detection), performs statistical tests (Wilcoxon, KS test), and generates visualizations color-coded by betweenness centrality, Louvain communities, and primary project affiliations.
+
+- **data/**: Directory for input/output data files (not tracked in git)
+
+- **assets/**: Supporting files and resources
+
+## Configuration Files
 
 - **requirements.txt**: Python package dependencies
-- **data/**: Directory for input/output data files (not tracked in git)
 
 # References
 - Wanwangying Ma et al. “How do developers fix cross-project correlated bugs? a case study on the github scientific python ecosystem”. In: 2017 IEEE/ACM 39th International Conference on Software Engineering (ICSE). IEEE. 2017, pp. 381–392.          
