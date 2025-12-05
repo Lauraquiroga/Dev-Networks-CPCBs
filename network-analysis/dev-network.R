@@ -43,8 +43,8 @@ for (scenario in scenarios) {
       inv1 <- dev_involvement$max_inv[dev_involvement$username == dev1]
       inv2 <- dev_involvement$max_inv[dev_involvement$username == dev2]
       
-      # Calculate scenario weight as average of their involvements
-      scenario_weight <- mean(c(inv1, inv2))
+      # Calculate scenario weight as minimum of their involvements
+      scenario_weight <- min(c(inv1, inv2))
       
       # Create edge key (sorted to avoid duplicates)
       edge_key <- paste(sort(c(dev1, dev2)), collapse = "_")
@@ -107,6 +107,15 @@ cat("Graph density:", density_ds, "\n")
 # 4. Average weighted degree
 avg_weighted_degree_ds <- mean(strength(g_ds, weights=E(g_ds)$weight))
 cat("Average weighted degree:", avg_weighted_degree_ds, "\n")
+# 5. Gini coefficient (degree distribution)
+gini_coeff <- function(x) {
+  n <- length(x)
+  x_sorted <- sort(x)
+  index <- 1:n
+  return((2 * sum(index * x_sorted)) / (n * sum(x_sorted)) - (n + 1) / n)
+}
+gini_ds <- gini_coeff(degree(g_ds))
+cat("Gini coefficient (degree distribution):", gini_ds, "\n")
 
 # --- Upstream Driven Scenarios Graph ---
 # Read the upstream CSV file
@@ -141,8 +150,8 @@ for (scenario in scenarios_up) {
       inv1 <- dev_involvement$max_inv[dev_involvement$username == dev1]
       inv2 <- dev_involvement$max_inv[dev_involvement$username == dev2]
       
-      # Calculate scenario weight as average of their involvements
-      scenario_weight <- mean(c(inv1, inv2))
+      # Calculate scenario weight as minimum of their involvements
+      scenario_weight <- min(c(inv1, inv2))
       
       # Create edge key (sorted to avoid duplicates)
       edge_key <- paste(sort(c(dev1, dev2)), collapse = "_")
@@ -204,12 +213,15 @@ cat("Graph density:", density_up, "\n")
 # 4. Average weighted degree
 avg_weighted_degree_up <- mean(strength(g_up, weights=E(g_up)$weight))
 cat("Average weighted degree:", avg_weighted_degree_up, "\n")
+# 5. Gini coefficient (degree distribution)
+gini_up <- gini_coeff(degree(g_up))
+cat("Gini coefficient (degree distribution):", gini_up, "\n")
 
 # --- Degree Distribution (Unweighted) ---
 # Downstream Driven Graph
 deg_ds <- degree(g_ds, mode = "all")
 hist_ds <- hist(deg_ds, breaks = seq(min(deg_ds), max(deg_ds)+1, by=1),
-               main = "Degree Distribution (Downstream)",
+               main = "Degree Distribution (Downstream-driven)",
                xlab = "Degree", ylab = "Frequency", col = "skyblue",
                xaxt = "n", yaxt = "n", xlim = c(min(deg_ds), max(deg_ds)), ylim = c(0, max(tabulate(deg_ds+1))))
 # Custom x and y axes with more ticks
@@ -235,7 +247,7 @@ plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
 # Upstream Driven Graph
 deg_up <- degree(g_up, mode = "all")
 hist_up <- hist(deg_up, breaks = seq(min(deg_up), max(deg_up)+1, by=1),
-               main = "Degree Distribution (Upstream)",
+               main = "Degree Distribution (Upstream-involved)",
                xlab = "Degree", ylab = "Frequency", col = "salmon",
                xaxt = "n", yaxt = "n", xlim = c(min(deg_up), max(deg_up)), ylim = c(0, max(tabulate(deg_up+1))))
 # Custom x and y axes with more ticks
@@ -247,6 +259,9 @@ cat("\nDegree distribution (upstream):\n")
 print(table(deg_up))
 
 # --- Edge Weight Distribution (Histogram) ---
+cat("\nWilcoxon rank-sum test (Mann-Whitney U test) for degree distributions (downstream vs upstream):\n")
+wilcox_deg_result <- wilcox.test(deg_ds, deg_up)
+print(wilcox_deg_result)
 # Downstream Driven Graph
 edge_weights_ds <- E(g_ds)$weight
 hist(edge_weights_ds, breaks = 30, main = "Edge Weight Distribution (Downstream)",
@@ -356,7 +371,7 @@ get_centrality_colors <- function(names_vec, betw_sorted) {
 # Downstream network plot
 colors_ds <- get_centrality_colors(V(g_ds)$name, betw_ds_sorted)
 plot(g_ds, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
-  layout = layout_nicely(g_ds), main = "Downstream: Nodes by Betweenness Rank",
+  layout = layout_nicely(g_ds), main = "Downstream-driven: Nodes by Betweenness Rank",
   vertex.color = colors_ds)
 legend("topright", legend = c("Top 1", "Top 2-5", "Top 6-10", "Other"),
     col = c("red", "orange", "yellow", "lightgray"), pch = 19, pt.cex = 1.5, bty = "n")
@@ -364,7 +379,7 @@ legend("topright", legend = c("Top 1", "Top 2-5", "Top 6-10", "Other"),
 # Upstream network plot
 colors_up <- get_centrality_colors(V(g_up)$name, betw_up_sorted)
 plot(g_up, vertex.size=5, vertex.label=NA, edge.arrow.size=0.4,
-  layout = layout_nicely(g_up), main = "Upstream: Nodes by Betweenness Rank",
+  layout = layout_nicely(g_up), main = "Upstream-involved: Nodes by Betweenness Rank",
   vertex.color = colors_up)
 legend("topright", legend = c("Top 1", "Top 2-5", "Top 6-10", "Other"),
     col = c("red", "orange", "yellow", "lightgray"), pch = 19, pt.cex = 1.5, bty = "n")
@@ -516,4 +531,57 @@ cat("Nodes with primary affiliation:", sum(V(g_up)$name %in% names(primary_affil
 cat("Top 5 primary affiliations:\n")
 print(head(sort(project_counts_up, decreasing = TRUE), 5))
 
+# --- Normalized Mutual Information (NMI) ---
+# Compare Louvain communities with project affiliations
 
+# Function to compute NMI
+compute_nmi <- function(graph, louvain_membership, affiliation_lookup) {
+  node_names <- V(graph)$name
+  
+  # Create affiliation membership vector (aligned with graph nodes)
+  affiliation_membership <- rep(NA, length(node_names))
+  
+  for (i in seq_along(node_names)) {
+    username <- node_names[i]
+    if (username %in% names(affiliation_lookup)) {
+      affiliation_membership[i] <- affiliation_lookup[[username]]
+    }
+  }
+  
+  # Filter out nodes without affiliation
+  has_affiliation <- !is.na(affiliation_membership)
+  louvain_filtered <- louvain_membership[has_affiliation]
+  affiliation_filtered <- affiliation_membership[has_affiliation]
+  
+  # Convert project names to numeric factors
+  affiliation_numeric <- as.numeric(factor(affiliation_filtered))
+  
+  # Use igraph's compare function with method "nmi"
+  nmi_value <- compare(louvain_filtered, affiliation_numeric, method = "nmi")
+  
+  return(list(
+    nmi = nmi_value,
+    n_nodes_with_affiliation = sum(has_affiliation),
+    n_louvain_communities = length(unique(louvain_filtered)),
+    n_project_affiliations = length(unique(affiliation_filtered))
+  ))
+}
+
+cat("\n--- Normalized Mutual Information (NMI) ---\n")
+cat("Comparing Louvain communities with project affiliations\n\n")
+
+# Downstream network NMI
+nmi_ds <- compute_nmi(g_ds, membership(comm_ds), primary_affiliation_lookup)
+cat("Downstream Network:\n")
+cat("  NMI:", nmi_ds$nmi, "\n")
+cat("  Nodes with affiliation:", nmi_ds$n_nodes_with_affiliation, "/", vcount(g_ds), "\n")
+cat("  Number of Louvain communities:", nmi_ds$n_louvain_communities, "\n")
+cat("  Number of project affiliations:", nmi_ds$n_project_affiliations, "\n\n")
+
+# Upstream network NMI
+nmi_up <- compute_nmi(g_up, membership(comm_up), primary_affiliation_lookup)
+cat("Upstream Network:\n")
+cat("  NMI:", nmi_up$nmi, "\n")
+cat("  Nodes with affiliation:", nmi_up$n_nodes_with_affiliation, "/", vcount(g_up), "\n")
+cat("  Number of Louvain communities:", nmi_up$n_louvain_communities, "\n")
+cat("  Number of project affiliations:", nmi_up$n_project_affiliations, "\n")
