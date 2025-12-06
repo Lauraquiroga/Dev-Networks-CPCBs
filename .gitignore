@@ -1,5 +1,11 @@
 __pycache__/
 data/*
+!data/combined_issues.csv
+!data/developer_info_cleaned.csv
+!data/dev_affiliations_primary.csv
+!data/upstream_driven.csv
+!data/downstream_driven.csv
+
 venv/
 .DS_Store
 .env

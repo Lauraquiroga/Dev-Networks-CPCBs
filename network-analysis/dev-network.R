@@ -420,7 +420,7 @@ legend("bottomleft", legend = paste("Community", sort(unique(membership(comm_up)
 # --- Load Developer Affiliations and Color-Code Networks by Primary Affiliation ---
 
 # Read the developer affiliations CSV file
-df_aff <- read.csv("../data/dev_affiliations_v2.csv", stringsAsFactors = FALSE)
+df_aff <- read.csv("../data/dev_affiliations_primary.csv", stringsAsFactors = FALSE)
 
 # Filter to only primary affiliations
 df_primary <- df_aff[df_aff$AffiliationType == "primary", ]

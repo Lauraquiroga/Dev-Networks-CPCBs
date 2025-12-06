@@ -40,7 +40,18 @@ This repository contains scripts and data for extracting, mining, and analyzing 
 - **network-analysis/**: R scripts for network analysis and visualization
   - **dev_network.R**: Main network analysis script. Constructs and analyzes developer collaboration networks for both downstream-driven and upstream-involved scenarios. Computes network metrics (degree distribution, betweenness centrality, community detection), performs statistical tests (Wilcoxon, KS test), and generates visualizations color-coded by betweenness centrality, Louvain communities, and primary project affiliations.
 
-- **data/**: Directory for input/output data files (not tracked in git)
+- **data/**: Directory for input/output data files. Intermediate files used in the data cleaning process are not tracked in github. Key CSV files tracked here include:
+
+    - **combined_issues.csv**: Aggregated list of all CPCB-related issues across projects and patterns.
+    - **developer_info.csv** / **developer_info_cleaned.csv**: Developer participation and role information for each issue.
+    - **dev_affiliations_primary.csv**: Project affiliation of each developer, used as node attributes in network analysis.
+    - **downstream_driven.csv**: List of developers involved in downstream-driven fix scenarios (used in network analysis).
+    - **upstream_driven.csv**: List of developers involved in upstream-involved fix scenarios (used in network analysis).
+
+  Note: the main CSV files used in the network analysis script are:
+    - **downstream_driven.csv** (list of developers in downstream-driven fixes)
+    - **upstream_driven.csv** (list of developers in upstream-involved scenarios)
+    - **dev_affiliations_primary.csv** (project affiliation of each developer, used as node attributes in the network)
 
 - **assets/**: Supporting files and resources
 
@@ -53,4 +64,4 @@ This repository contains scripts and data for extracting, mining, and analyzing 
 - Ashraf, U., Mayr-Dorn, C., Mashkoor, A., Egyed, A., & Panichella, S. (2021, May). Do communities in developer interaction networks align with subsystem developer teams? An empirical study of open source systems. In 2021 IEEE/ACM Joint 15th International Conference on Software and System Processes (ICSSP) and 16th ACM/IEEE International Conference on Global Software Engineering (ICGSE) (pp. 61-71). IEEE.
 - Canfora, G., Cerulo, L., Cimitile, M., & Di Penta, M. (2011, May). Social interactions around cross-system bug fixings: the case of freebsd and openbsd. In Proceedings of the 8th working conference on mining software repositories (pp. 143-152).     
 - Herbold, S., Amirfallah, A., Trautsch, F., & Grabowski, J. (2021). A systematic mapping study of developer social network research. Journal of Systems and Software, 171, 110802.
-- Kumar, A., & Gupta, A. (2013, February). Evolution of developer social network and its impact on bug fixing process. In Proceedings of the 6th India Software Engineering Conference (pp. 63-72).     
+- Kumar, A., & Gupta, A. (2013, February). Evolution of developer social network and its impact on bug fixing process. In Proceedings of the 6th India Software Engineering Conference (pp. 63-72).
